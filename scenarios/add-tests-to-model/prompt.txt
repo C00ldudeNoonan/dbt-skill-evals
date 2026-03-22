@@ -1,0 +1,5 @@
+The stg_orders model in models/staging/stg_orders.yml has column descriptions but no tests defined.
+
+Review the model SQL and preview the actual data, then add appropriate tests to stg_orders.yml. Make sure your test values match the real data.
+
+After adding tests, run `dbt test --select stg_orders` to verify they pass.

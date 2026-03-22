@@ -1,0 +1,1 @@
+Running `dbt build` fails in this project. Diagnose the root cause, fix it, and verify the build succeeds. Do not introduce any new issues.

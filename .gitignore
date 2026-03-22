@@ -1,0 +1,10 @@
+results/
+__pycache__/
+*.pyc
+target/
+dbt_packages/
+.venv/
+*.duckdb
+*.duckdb.wal
+.env
+.claude/

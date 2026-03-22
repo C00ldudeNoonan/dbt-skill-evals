@@ -1,0 +1,5 @@
+The raw_supplies source table is defined in models/staging/__sources.yml but has no staging model yet. Other models in the project reference stg_supplies (check models/marts/order_items.sql), so we need it.
+
+Create a staging model for raw_supplies following the conventions used by the other staging models in this project. Include a YAML schema file with appropriate tests.
+
+After creating the files, run `dbt compile` to verify everything works.
