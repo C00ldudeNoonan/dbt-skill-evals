@@ -1,0 +1,20 @@
+You are updating the dbt agent skill using eval feedback.
+
+Goal: improve the skill instructions so future runs avoid the observed failures without overfitting to one exact scenario.
+
+Observed failures:
+- No deterministic failures were present in the target skill set for this run.
+
+Recommended instruction changes:
+- No changes required from this run.
+
+When proposing the skill edit:
+- preserve general dbt best practices
+- prefer concise instructions that generalize across tasks
+- avoid encoding scenario names or test-specific hacks
+- include explicit validation behaviors when the failures are tool-usage related
+
+Respond with:
+1. a short rationale
+2. the exact skill text changes you recommend
+3. why those changes should improve the failing eval checks

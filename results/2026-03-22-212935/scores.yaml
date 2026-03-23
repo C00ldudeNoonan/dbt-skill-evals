@@ -1,0 +1,262 @@
+add-relationships-tests/no-skills:
+  checks:
+    has_customer_relationship: true
+    has_location_relationship: true
+    preserves_expression_test: true
+    preserves_order_id_tests: true
+    used_targeted_dbt_test: true
+    yml_modified: true
+  duration_ms: 68660
+  input_tokens: 8
+  output_tokens: 3382
+  scenario: add-relationships-tests
+  skill_set: no-skills
+  tools_used:
+  - Read
+  - Edit
+  - Bash
+  total_cost_usd: 0.25739674999999995
+add-relationships-tests/with-skills:
+  checks:
+    has_customer_relationship: true
+    has_location_relationship: true
+    preserves_expression_test: true
+    preserves_order_id_tests: true
+    used_targeted_dbt_test: true
+    yml_modified: true
+  duration_ms: 28297
+  input_tokens: 8
+  output_tokens: 1146
+  scenario: add-relationships-tests
+  skill_set: with-skills
+  tools_used:
+  - Read
+  - Edit
+  - Bash
+  total_cost_usd: 0.19282475
+add-source-freshness/no-skills:
+  checks:
+    error_after_24h: true
+    has_raw_orders_freshness: true
+    preserves_loaded_at_field: true
+    used_targeted_source_freshness: true
+    warn_after_12h: true
+    yml_modified: true
+  duration_ms: 17228
+  input_tokens: 6
+  output_tokens: 697
+  scenario: add-source-freshness
+  skill_set: no-skills
+  tools_used:
+  - Read
+  - Edit
+  - Bash
+  total_cost_usd: 0.118618
+add-source-freshness/with-skills:
+  checks:
+    error_after_24h: true
+    has_raw_orders_freshness: true
+    preserves_loaded_at_field: true
+    used_targeted_source_freshness: true
+    warn_after_12h: true
+    yml_modified: true
+  duration_ms: 17443
+  input_tokens: 6
+  output_tokens: 692
+  scenario: add-source-freshness
+  skill_set: with-skills
+  tools_used:
+  - Read
+  - Edit
+  - Bash
+  total_cost_usd: 0.11848900000000001
+add-tests-to-model/no-skills:
+  checks:
+    has_expression_test: true
+    has_not_null_test: true
+    has_unique_test: true
+    no_accepted_values_hallucination: true
+    used_dbt_show: true
+    yml_modified: true
+  duration_ms: 72915
+  input_tokens: 16
+  output_tokens: 2576
+  scenario: add-tests-to-model
+  skill_set: no-skills
+  tools_used:
+  - Bash
+  - Read
+  - Glob
+  - mcp__claude_ai_MotherDuck__query
+  - Edit
+  total_cost_usd: 0.3550445
+add-tests-to-model/with-skills:
+  checks:
+    has_expression_test: true
+    has_not_null_test: true
+    has_unique_test: true
+    no_accepted_values_hallucination: true
+    used_dbt_show: true
+    yml_modified: true
+  duration_ms: 57448
+  input_tokens: 12
+  output_tokens: 2596
+  scenario: add-tests-to-model
+  skill_set: with-skills
+  tools_used:
+  - Glob
+  - Read
+  - Bash
+  - Edit
+  total_cost_usd: 0.37433799999999995
+add-unit-test-to-model/no-skills:
+  checks:
+    asserts_boolean_outputs: true
+    has_unit_test: true
+    preserves_product_id_tests: true
+    used_targeted_dbt_test: true
+    uses_raw_products_source_input: true
+    yml_modified: true
+  duration_ms: 26664
+  input_tokens: 7
+  output_tokens: 1478
+  scenario: add-unit-test-to-model
+  skill_set: no-skills
+  tools_used:
+  - Glob
+  - Read
+  - Edit
+  - Bash
+  total_cost_usd: 0.18976400000000002
+add-unit-test-to-model/with-skills:
+  checks:
+    asserts_boolean_outputs: true
+    has_unit_test: true
+    preserves_product_id_tests: true
+    used_targeted_dbt_test: true
+    uses_raw_products_source_input: true
+    yml_modified: true
+  duration_ms: 31026
+  input_tokens: 7
+  output_tokens: 1576
+  scenario: add-unit-test-to-model
+  skill_set: with-skills
+  tools_used:
+  - Glob
+  - Read
+  - Edit
+  - Bash
+  total_cost_usd: 0.19577524999999998
+create-staging-model/no-skills:
+  checks:
+    has_not_null_test: true
+    has_unique_test: true
+    sql_file_created: true
+    uses_cents_to_dollars: true
+    uses_source_macro: true
+    uses_surrogate_key: true
+    yaml_file_created: true
+  duration_ms: 69180
+  input_tokens: 15
+  output_tokens: 3743
+  scenario: create-staging-model
+  skill_set: no-skills
+  tools_used:
+  - Glob
+  - Read
+  - Bash
+  - mcp__claude_ai_MotherDuck__query
+  - Write
+  total_cost_usd: 0.39906074999999996
+create-staging-model/with-skills:
+  checks:
+    has_not_null_test: true
+    has_unique_test: true
+    sql_file_created: true
+    uses_cents_to_dollars: true
+    uses_source_macro: true
+    uses_surrogate_key: true
+    yaml_file_created: true
+  duration_ms: 62256
+  input_tokens: 710
+  output_tokens: 2886
+  scenario: create-staging-model
+  skill_set: with-skills
+  tools_used:
+  - Glob
+  - Read
+  - Write
+  - mcp__claude_ai_MotherDuck__list_databases
+  - Bash
+  total_cost_usd: 0.34810874999999997
+debug-failing-build/no-skills:
+  checks:
+    bug_fixed: true
+    no_collateral_changes: true
+    sql_file_modified: true
+    typo_removed: true
+  duration_ms: 28366
+  input_tokens: 8
+  output_tokens: 982
+  scenario: debug-failing-build
+  skill_set: no-skills
+  tools_used:
+  - Bash
+  - Read
+  - Edit
+  total_cost_usd: 0.17901275
+debug-failing-build/with-skills:
+  checks:
+    bug_fixed: true
+    no_collateral_changes: true
+    sql_file_modified: true
+    typo_removed: true
+  duration_ms: 31361
+  input_tokens: 8
+  output_tokens: 869
+  scenario: debug-failing-build
+  skill_set: with-skills
+  tools_used:
+  - Bash
+  - Read
+  - Edit
+  total_cost_usd: 0.1634705
+refactor-hardcoded-source/no-skills:
+  checks:
+    preserves_cents_to_dollars: true
+    preserves_drink_flag: true
+    preserves_food_flag: true
+    removes_hardcoded_relation: true
+    sql_file_modified: true
+    used_targeted_compile: true
+    uses_source_macro: true
+  duration_ms: 20411
+  input_tokens: 7
+  output_tokens: 759
+  scenario: refactor-hardcoded-source
+  skill_set: no-skills
+  tools_used:
+  - Read
+  - Edit
+  - Bash
+  total_cost_usd: 0.12954025
+refactor-hardcoded-source/with-skills:
+  checks:
+    preserves_cents_to_dollars: true
+    preserves_drink_flag: true
+    preserves_food_flag: true
+    removes_hardcoded_relation: true
+    sql_file_modified: true
+    used_targeted_compile: true
+    uses_source_macro: true
+  duration_ms: 29912
+  input_tokens: 9
+  output_tokens: 1039
+  scenario: refactor-hardcoded-source
+  skill_set: with-skills
+  tools_used:
+  - Read
+  - Glob
+  - Edit
+  - Bash
+  total_cost_usd: 0.28673000000000004

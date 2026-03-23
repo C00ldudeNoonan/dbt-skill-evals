@@ -1,0 +1,1 @@
+Compiled successfully. The model now resolves `{{ source('ecom', 'raw_products') }}` to `"jaffle_shop"."raw"."raw_products"` — same underlying table, but managed through the source macro.

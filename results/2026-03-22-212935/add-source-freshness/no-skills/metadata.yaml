@@ -1,0 +1,12 @@
+duration_ms: 17228
+error: ''
+input_tokens: 6
+model: ''
+num_turns: 4
+output_tokens: 697
+success: true
+tools_used:
+- Read
+- Edit
+- Bash
+total_cost_usd: 0.118618

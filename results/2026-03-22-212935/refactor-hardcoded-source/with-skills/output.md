@@ -1,0 +1,1 @@
+Compiled successfully. The model now reads from `{{ source('ecom', 'raw_products') }}` which resolves to `"jaffle_shop"."raw"."raw_products"`, preserving all column names and transformations.

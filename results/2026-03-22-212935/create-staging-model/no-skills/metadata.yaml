@@ -1,0 +1,14 @@
+duration_ms: 69180
+error: ''
+input_tokens: 15
+model: ''
+num_turns: 21
+output_tokens: 3743
+success: true
+tools_used:
+- Glob
+- Read
+- Bash
+- mcp__claude_ai_MotherDuck__query
+- Write
+total_cost_usd: 0.39906074999999996

@@ -1,0 +1,25 @@
+models:
+  - name: stg_products
+    description: Product (food and drink items that can be ordered) data with basic cleaning and transformation applied, one row per product.
+    columns:
+      - name: product_id
+        description: The unique key for each product.
+        data_tests:
+          - not_null
+          - unique
+
+unit_tests:
+  - name: test_stg_products_boolean_flags
+    description: Verify is_food_item and is_drink_item are derived correctly from product_type.
+    model: stg_products
+    given:
+      - input: source('ecom', 'raw_products')
+        rows:
+          - {sku: "P001", name: "Classic Jaffle", type: "jaffle", description: "A toasted sandwich", price: 800}
+          - {sku: "P002", name: "Oat Milk Latte", type: "beverage", description: "A hot drink", price: 500}
+          - {sku: "P003", name: "Mystery Item", type: "other", description: "Unknown category", price: 300}
+    expect:
+      rows:
+        - {product_id: "P001", is_food_item: true,  is_drink_item: false}
+        - {product_id: "P002", is_food_item: false, is_drink_item: true}
+        - {product_id: "P003", is_food_item: false, is_drink_item: false}

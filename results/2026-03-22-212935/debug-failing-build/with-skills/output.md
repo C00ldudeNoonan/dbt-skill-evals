@@ -1,0 +1,2 @@
+Line 16 has `customers` but the actual column is `customer`. Fixing it:
+Fixed. The root cause was a typo in `models/staging/stg_orders.sql` line 16: `customers` instead of `customer` (the actual column name in the raw source). Build now passes with 49 passing, 0 errors.

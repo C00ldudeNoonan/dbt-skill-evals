@@ -1,0 +1,19 @@
+models:
+  - name: stg_supplies
+    description: Supply data with basic cleaning and transformation applied, one row per supply per product SKU.
+    columns:
+      - name: supply_id
+        description: The unique key for each supply, generated from id and sku.
+        data_tests:
+          - not_null
+          - unique
+      - name: supply_id_raw
+        description: The original supply id from the source, not unique on its own.
+      - name: product_id
+        description: The SKU of the product this supply is associated with.
+      - name: supply_name
+        description: The name of the supply item.
+      - name: supply_cost
+        description: The cost of the supply in dollars.
+      - name: is_perishable
+        description: Whether the supply item is perishable.

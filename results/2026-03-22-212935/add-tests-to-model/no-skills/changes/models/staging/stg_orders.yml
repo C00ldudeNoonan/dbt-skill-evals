@@ -1,0 +1,24 @@
+models:
+  - name: stg_orders
+    description: Order data with basic cleaning and transformation applied, one row per order.
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "order_total - tax_paid = subtotal"
+    columns:
+      - name: order_id
+        description: The unique key for each order.
+        tests:
+          - unique
+          - not_null
+      - name: location_id
+        description: The foreign key to the store location.
+      - name: customer_id
+        description: The foreign key to the customer.
+      - name: subtotal
+        description: The subtotal of the order in dollars.
+      - name: tax_paid
+        description: The tax paid on the order in dollars.
+      - name: order_total
+        description: The total amount of the order in dollars.
+      - name: ordered_at
+        description: The date the order was placed.
