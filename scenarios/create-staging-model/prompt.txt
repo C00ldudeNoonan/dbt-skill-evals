@@ -1,5 +1,9 @@
 The raw_supplies source table is defined in models/staging/__sources.yml but has no staging model yet. Other models in the project reference stg_supplies (check models/marts/order_items.sql), so we need it.
 
-Create a staging model for raw_supplies following the conventions used by the other staging models in this project. Include a YAML schema file with appropriate tests.
+Create a staging model for raw_supplies following the conventions used by the other staging models in this project. Review the existing staging models and preserve the correct grain of the source data.
 
-After creating the files, run `dbt compile` to verify everything works.
+The source contains repeated `id` values across different `sku` values, so treat this as a composite grain and generate the model's primary key with `dbt_utils.generate_surrogate_key(['id', 'sku'])`. Add YAML tests on that generated key.
+
+Use the existing helper macros where appropriate, including `cents_to_dollars('cost')` for the cost column.
+
+After creating the files, run `dbt compile --select stg_supplies` to verify everything works.

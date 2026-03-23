@@ -1,5 +1,7 @@
 The stg_orders model in models/staging/stg_orders.yml has column descriptions but no tests defined.
 
-Review the model SQL and preview the actual data, then add appropriate tests to stg_orders.yml. Make sure your test values match the real data.
+Review the model SQL and preview the actual data before editing the YAML. Use `dbt show --select stg_orders --limit 10` or an equivalent command so your tests are grounded in the real rows.
+
+Add the standard key tests on `order_id`, avoid inventing `accepted_values`, and include an `expression_is_true` test for `order_total - tax_paid = subtotal`.
 
 After adding tests, run `dbt test --select stg_orders` to verify they pass.

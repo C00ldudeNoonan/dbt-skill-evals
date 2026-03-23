@@ -1,0 +1,11 @@
+The `stg_products` model derives `is_food_item` and `is_drink_item` from `product_type`, but that logic is not covered by a unit test yet.
+
+Add a unit test to `models/staging/stg_products.yml` that uses `source('ecom', 'raw_products')` input rows and verifies the boolean outputs are computed correctly.
+
+At minimum, cover:
+- a `jaffle` row that becomes `is_food_item: true`
+- a `beverage` row that becomes `is_drink_item: true`
+
+Preserve the existing column tests already in the file.
+
+After editing, run `dbt test --select stg_products` to verify the model tests pass.

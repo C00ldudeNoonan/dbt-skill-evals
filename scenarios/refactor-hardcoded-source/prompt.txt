@@ -1,0 +1,7 @@
+The `stg_products` model currently reads directly from the raw schema instead of following the project's source-macro conventions.
+
+Update `models/staging/stg_products.sql` so it uses `{{ source('ecom', 'raw_products') }}` rather than a hardcoded raw relation.
+
+Preserve the existing column names and transformation logic, including the boolean flags and the `cents_to_dollars` conversion.
+
+After editing, run `dbt compile --select stg_products` to verify the model still compiles.

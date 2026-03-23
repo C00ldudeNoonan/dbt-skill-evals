@@ -1,0 +1,11 @@
+The `stg_orders` model already has key and arithmetic tests, but it is still missing foreign-key relationship coverage on its parent dimensions.
+
+Review `models/staging/stg_orders.sql` plus the relevant parent staging models, then add the missing relationship tests to `models/staging/stg_orders.yml`.
+
+Add relationship tests for:
+- `customer_id` -> `ref('stg_customers')` / `customer_id`
+- `location_id` -> `ref('stg_locations')` / `location_id`
+
+Preserve the existing tests that are already in the file.
+
+After editing, run `dbt test --select path:models/staging/stg_orders.yml` to verify the tests in that YAML file pass.

@@ -15,13 +15,14 @@ The agent must create `stg_supplies.sql` and a companion YAML schema file follow
 
 ### Solution Quality
 1. Uses `{{ source('ecom', 'raw_supplies') }}` macro (not hardcoded table reference)
-2. Follows naming conventions: `stg_supplies` model name, descriptive column aliases
-3. YAML file includes `not_null` and `unique` tests on the primary key
-4. Materialized as view (inherits from `dbt_project.yml` staging config)
-5. Bonus: uses `cents_to_dollars` macro for cost column
-6. Bonus: uses `dbt_utils.generate_surrogate_key` for composite key
+2. Follows naming conventions: `stg_supplies` model name, descriptive column aliases, and the correct source grain
+3. Uses `dbt_utils.generate_surrogate_key(['id', 'sku'])` for the composite primary key because `raw_supplies` repeats `id` across `sku`
+4. YAML file includes `not_null` and `unique` tests on that generated primary key
+5. Materialized as view (inherits from `dbt_project.yml` staging config)
+6. Uses `cents_to_dollars` macro for cost column
 
 ### Tool Usage
 - Appropriate: Read existing models to understand conventions before writing
-- Appropriate: Run `dbt compile` to validate
+- Appropriate: Inspect the source grain before choosing the primary key
+- Appropriate: Run `dbt compile --select stg_supplies` to validate
 - Inappropriate: Writing without reviewing existing patterns first

@@ -13,6 +13,7 @@ import yaml
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
+from typing import Final
 
 
 SCENARIOS_DIR = Path(__file__).parent / "scenarios"
@@ -20,6 +21,31 @@ RESULTS_DIR = Path(__file__).parent / "results"
 VENV_DIR = Path(__file__).parent / ".venv"
 RUN_TIMEOUT = 600  # 10 minutes per run
 STALL_TIMEOUT = 120  # 2 minutes with no output = stalled
+DBT_VERSION_TIMEOUT: Final[int] = 10
+DBT_SETUP_TIMEOUT: Final[int] = 120
+BOOTSTRAP_STG_SUPPLIES_SQL: Final[str] = """with
+
+source as (
+
+    select * from {{ source('ecom', 'raw_supplies') }}
+
+),
+
+renamed as (
+
+    select
+        {{ dbt_utils.generate_surrogate_key(['id', 'sku']) }} as supply_uuid,
+        id as supply_id,
+        sku as product_id,
+        name as supply_name,
+        {{ cents_to_dollars('cost') }} as supply_cost,
+        perishable as is_perishable_supply
+    from source
+
+)
+
+select * from renamed
+"""
 
 
 @dataclass
@@ -75,17 +101,130 @@ def load_scenario(scenario_dir: Path) -> Scenario:
     )
 
 
-def _find_dbt() -> str:
-    """Find dbt-core executable, preferring the project venv."""
-    # Check venv (Windows and Unix)
-    for candidate in [
-        VENV_DIR / "Scripts" / "dbt.exe",
-        VENV_DIR / "Scripts" / "dbt",
-        VENV_DIR / "bin" / "dbt",
-    ]:
-        if candidate.exists():
-            return str(candidate)
-    return "dbt"  # Fall back to system dbt
+def _format_command(command: list[str]) -> str:
+    return " ".join(command)
+
+
+def _resolve_dbt_command() -> tuple[list[str] | None, str | None]:
+    """Resolve a dbt Core command and explain why resolution failed when it does."""
+    candidates = [
+        [str(VENV_DIR / "Scripts" / "dbt.exe")],
+        [str(VENV_DIR / "Scripts" / "dbt")],
+        [str(VENV_DIR / "bin" / "dbt")],
+        [sys.executable, "-m", "dbt.cli.main"],
+    ]
+
+    system_dbt = shutil.which("dbt")
+    if system_dbt:
+        candidates.append([system_dbt])
+
+    failure_notes: list[str] = []
+
+    for command in candidates:
+        executable = Path(command[0])
+        if len(command) == 1 and executable.is_absolute() and not executable.exists():
+            continue
+
+        try:
+            version_result = subprocess.run(
+                [*command, "--version"],
+                capture_output=True,
+                text=True,
+                timeout=DBT_VERSION_TIMEOUT,
+            )
+        except FileNotFoundError:
+            continue
+        except Exception as exc:
+            failure_notes.append(f"{_format_command(command)}: {exc}")
+            continue
+
+        version_text = "\n".join(
+            part.strip() for part in (version_result.stdout, version_result.stderr) if part.strip()
+        )
+        lowered = version_text.lower()
+
+        if version_result.returncode == 0 and "dbt cloud cli" not in lowered:
+            return command, None
+
+        reason = version_text or f"exit code {version_result.returncode}"
+        failure_notes.append(f"{_format_command(command)}: {reason}")
+
+    if failure_notes:
+        return None, "; ".join(failure_notes)
+    return None, "No dbt executable or importable dbt module was found."
+
+
+def _run_dbt(
+    command: list[str],
+    args: list[str],
+    *,
+    cwd: Path,
+    env: dict[str, str],
+    timeout: int,
+    check: bool = False,
+) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [*command, *args],
+        cwd=cwd,
+        capture_output=True,
+        text=True,
+        check=check,
+        env=env,
+        timeout=timeout,
+    )
+
+
+def _format_subprocess_error(exc: subprocess.CalledProcessError) -> str:
+    parts = [part.strip() for part in (exc.stderr, exc.stdout) if part and part.strip()]
+    if parts:
+        return "\n".join(parts)[:1000]
+    return f"{_format_command(exc.cmd if isinstance(exc.cmd, list) else [str(exc.cmd)])} exited with code {exc.returncode}"
+
+
+def _copy_bootstrap_artifacts(bootstrap_dir: Path, temp_dir: Path) -> None:
+    dbt_packages_dir = bootstrap_dir / "dbt_packages"
+    if dbt_packages_dir.exists():
+        shutil.copytree(dbt_packages_dir, temp_dir / "dbt_packages", dirs_exist_ok=True)
+
+    package_lock = bootstrap_dir / "package-lock.yml"
+    if package_lock.exists():
+        shutil.copy2(package_lock, temp_dir / "package-lock.yml")
+
+    for pattern in ("*.duckdb", "*.duckdb.wal"):
+        for database_file in bootstrap_dir.glob(pattern):
+            shutil.copy2(database_file, temp_dir / database_file.name)
+
+
+def _bootstrap_create_staging_model_environment(
+    temp_dir: Path,
+    dbt_command: list[str],
+    env: dict[str, str],
+) -> None:
+    bootstrap_dir = Path(tempfile.mkdtemp(prefix="dbt-bootstrap-create-staging-model-"))
+    try:
+        shutil.copytree(temp_dir, bootstrap_dir, dirs_exist_ok=True)
+        stub_model = bootstrap_dir / "models" / "staging" / "stg_supplies.sql"
+        stub_model.write_text(BOOTSTRAP_STG_SUPPLIES_SQL)
+
+        _run_dbt(
+            dbt_command,
+            ["deps"],
+            cwd=bootstrap_dir,
+            env={**env, "DBT_PROFILES_DIR": str(bootstrap_dir)},
+            timeout=DBT_SETUP_TIMEOUT,
+            check=True,
+        )
+        _run_dbt(
+            dbt_command,
+            ["seed"],
+            cwd=bootstrap_dir,
+            env={**env, "DBT_PROFILES_DIR": str(bootstrap_dir)},
+            timeout=DBT_SETUP_TIMEOUT,
+            check=True,
+        )
+        _copy_bootstrap_artifacts(bootstrap_dir, temp_dir)
+    finally:
+        shutil.rmtree(bootstrap_dir, ignore_errors=True)
 
 
 def prepare_environment(scenario: Scenario, skill_set: SkillSet) -> Path:
@@ -101,36 +240,57 @@ def prepare_environment(scenario: Scenario, skill_set: SkillSet) -> Path:
     env = os.environ.copy()
     env["DBT_PROFILES_DIR"] = str(temp_dir)
 
-    # Use venv dbt-core (system dbt may be dbt Cloud CLI)
-    dbt_cmd = _find_dbt()
+    dbt_command, resolution_error = _resolve_dbt_command()
+    if dbt_command is None:
+        print(f"    WARNING: dbt setup skipped: {resolution_error}")
+        print("    Install project dependencies with: make setup")
+        return temp_dir
 
     try:
-        subprocess.run(
-            [dbt_cmd, "deps"],
-            cwd=temp_dir, capture_output=True, text=True, check=True,
-            env=env, timeout=120,
-        )
-        subprocess.run(
-            [dbt_cmd, "seed"],
-            cwd=temp_dir, capture_output=True, text=True, check=True,
-            env=env, timeout=120,
-        )
+        if scenario.name == "create-staging-model":
+            _bootstrap_create_staging_model_environment(temp_dir, dbt_command, env)
+        else:
+            _run_dbt(
+                dbt_command,
+                ["deps"],
+                cwd=temp_dir,
+                env=env,
+                timeout=DBT_SETUP_TIMEOUT,
+                check=True,
+            )
+            _run_dbt(
+                dbt_command,
+                ["seed"],
+                cwd=temp_dir,
+                env=env,
+                timeout=DBT_SETUP_TIMEOUT,
+                check=True,
+            )
         print("    dbt deps + seed completed.")
     except subprocess.CalledProcessError as e:
-        print(f"    WARNING: dbt setup failed: {e.stderr[:500]}")
+        print(f"    WARNING: dbt setup failed with `{_format_command(dbt_command)}`:")
+        print(f"    {_format_subprocess_error(e)}")
     except FileNotFoundError:
-        print("    WARNING: dbt not found. Install with: uv sync")
+        print("    WARNING: dbt not found. Install with: make setup")
 
     return temp_dir
 
 
 def run_claude(temp_dir: Path, prompt: str, skill_set: SkillSet) -> RunResult:
     """Run Claude Code headlessly and capture output."""
-    dbt_cmd = _find_dbt()
-    dbt_note = (
-        f"IMPORTANT: Use `{dbt_cmd}` instead of `dbt` for all dbt commands. "
-        f"The DBT_PROFILES_DIR is already set to the project directory."
-    )
+    dbt_command, _ = _resolve_dbt_command()
+    if dbt_command is not None:
+        dbt_cmd = _format_command(dbt_command)
+        dbt_note = (
+            f"IMPORTANT: Use `{dbt_cmd}` instead of `dbt` for all dbt commands. "
+            f"The DBT_PROFILES_DIR is already set to the project directory."
+        )
+    else:
+        dbt_note = (
+            "IMPORTANT: No verified dbt Core command was found in this environment. "
+            "If dbt commands fail, install project dependencies with `make setup` first. "
+            "The DBT_PROFILES_DIR is already set to the project directory."
+        )
 
     cmd = [
         "claude",
@@ -151,6 +311,8 @@ def run_claude(temp_dir: Path, prompt: str, skill_set: SkillSet) -> RunResult:
     # Ensure venv's dbt is on PATH
     env = os.environ.copy()
     env["DBT_PROFILES_DIR"] = str(temp_dir)
+    python_dir = str(Path(sys.executable).parent)
+    env["PATH"] = python_dir + os.pathsep + env.get("PATH", "")
     venv_scripts = str(VENV_DIR / "Scripts")
     if os.path.isdir(venv_scripts):
         env["PATH"] = venv_scripts + os.pathsep + env.get("PATH", "")

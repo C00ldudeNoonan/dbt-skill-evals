@@ -1,0 +1,9 @@
+The project defines the `raw_orders` source and its `loaded_at_field`, but it does not yet define freshness expectations for that table.
+
+Update `models/staging/__sources.yml` to add freshness thresholds for `raw_orders`:
+- `warn_after: {count: 12, period: hour}`
+- `error_after: {count: 24, period: hour}`
+
+Keep the existing source names, descriptions, and `loaded_at_field` values intact.
+
+After editing, run `dbt source freshness --select source:ecom.raw_orders` to verify the configuration is valid.
